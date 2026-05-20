@@ -1,4 +1,4 @@
-### utils.py ###
+### DriftCalculator.py ###
 
 import numpy as np
 
@@ -7,6 +7,7 @@ class DriftCalculator():
 
     def __init__(self):
         # Constants
+        # TODO: chexk this is lb/ft2 hahaha
         self.BallisticCoefficient = 15 #kgm^-2
         self.GravitationalAcceleration = 9.80665 # ms^-1
 
