@@ -5,6 +5,10 @@ import numpy as np
 
 
 
+##### Screening Methodology Section 6 #####
+##### Not currently used in place of latitude and longitide conversions below
+
+
 ### Calculates the distance of the displacement from the point of boom
 def _impactDistance(zonalDrift, meridionalDrift):
 
@@ -29,6 +33,11 @@ def _impactDisplacement(zonalDrift, meridionalDrift):
     # NOTE: That is the angle from North
 
     # I don't think this is needed as I actually want to convert the drifts from meters to long / lat deltas
+
+
+
+
+
 
 
 
@@ -69,7 +78,7 @@ def _convertMetersToLatitudeDiff(meridionalDrift):
 
     return latOffset
 
-# Calculates great-circle diameter at a given height
+# Calculates location of the impavt point in latitude & longitude
 def debrisImpactPoint(rocketLongitude, rocketLatitude, zonalDrift, meridionalDrift):
 
     # Convert zonalDrift into longitude diff - depends on current latitude
@@ -87,20 +96,28 @@ def debrisImpactPoint(rocketLongitude, rocketLatitude, zonalDrift, meridionalDri
 
 
 
+
+
+##### Tools for polygon boundary analysis
+
+
 def _getOffsetGranularity(coordA, coordB):
 
     Granularity = 10#m TODO: Check 420 Appendix B for a granularity requirement
+    
+    """
+    An applicant shall satisfy the map and plotting data requirements for a downrange area of appendix A, paragraph (b).
+    """
 
     # convert lat to meters
 
     # convert long to meters
 
-    # find the percentage offset that will give the required granularity
+    # find a percentage granularity that matches the expected gran in meters
 
     return 0.1 # for now test with this
 
 
-    # find a percentage granularity that matches the expected gran in meters
 
 
 
@@ -114,15 +131,22 @@ def _getPointsOnALine(coordA, coordB):
     granularity = _getOffsetGranularity(coordA, coordB)
 
     # Get a start location to apply the offset to
+    originLat  = coordA[0]
+    originLong = coordA[1]
+    
+    latDiff  = coordA[0] - coordB[0]
+    longDiff = coordA[1] - coordB[1]
 
     # Append the offset locations to the array
-
-
     # 
     offset = 0
     while offset < 1: # maybe <=
 
-        newLatitude = coordA[0] + 
+        newLatitude  = originLat  + latDiff*offset
+        newLongitude = originLong + longDiff*offset
+        
+        pointsOnALine[0].append(newLatitude)
+        pointsOnALine[1].append(newLongitude)
 
         offset += granularity 
 
@@ -132,7 +156,7 @@ def _getPointsOnALine(coordA, coordB):
 
 
 
-# Truthfully, I guessed how to do this bit, please tell me how to do this properly
+# BUG: If this polygon has a vertrx that goes tiward the arbitrary centre, this check will include coordinates outside the region, leading to a false negative.
 def isCoordinateInPolygon(polygonVertices, coordinate):
 
     isInside = False
@@ -140,23 +164,37 @@ def isCoordinateInPolygon(polygonVertices, coordinate):
     # Find "centre" of polygon - avg latitude & avg longitude
     centreLat  = sum(polygonVertices[0])/len(polygonVertices[0])
     centreLong = sum(polygonVertices[1])/len(polygonVertices[1])
-
+    
     # Check the coordinate is not bang on centre
     if (centreLat == coordinate[0]) and (centreLong == coordinate[1]):
         isInside = True
+    
+    # Check locations along each line of the polygon
+    # This loop checks points between idx & idx+1 but needs to also check 0 against -1
+    maxVertexIdx = len(polygonVertices[0])-1
+    for vertexIdx in range(maxCoordIdx):
+        coordA = [polygonVertices[0][vertexIdx], polygonVertices[1][vertex]]
+        if vertexIdx == maxVertexIdx:
+            coordB = [polygonVertices[0][0], polygonVertices[1][0]]
+        else:
+            coordB = [polygonVertices[0][vertexIdx+1], polygonVertices[1][vertex+1]]
+        
+        # Get an array of points between the vertices
+        pointsOnALine = _getPointsOnALine(coordA, coordB)
+        
+        # Check that the impact ciirdinate does not land between each point on the line
+        maxCoordIdx = len(pointsOnALine[0])
+        for coordIdx in range(maxCoordIdx):
+            coord = [pointsOnALine[0][coordIdx], pointsOnALine[1][coordIdx]]
+            minLat  = min([coord[0], centreLat])
+            maxLat  = max([coord[0], centreLat])
+            minLong = min([coord[1], centreLong])
+            maxLong = max([coord[1], centreLong])
 
-    # For each vertex in the polygon, check the coordinate is not between any of the lat/long values
-    maxCoordIdx = len(polygonVertices[0]) -1
-    for coordIdx in range(maxCoordIdx):
-        coord = [polygonVertices[0][coordIdx], polygonVertices[1][coordIdx]]
-        minLat  = min([coord[0], centreLat])
-        maxLat  = max([coord[0], centreLat])
-        minLong = min([coord[1], centreLong])
-        maxLong = max([coord[1], centreLong])
-
-        if ((minLat  >= coordinate[0]) and (maxLat  <= coordinate[0]) and
-            (minLong >= coordinate[1]) and (maxLong <= coordinate[1])):
-            isInside = True
+            if ((minLat  >= coordinate[0]) and (maxLat  <= coordinate[0]) and
+                (minLong >= coordinate[1]) and (maxLong <= coordinate[1])):
+                isInside = True
 
     return isInside
+
     
