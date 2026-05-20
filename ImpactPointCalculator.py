@@ -33,7 +33,7 @@ def _impactDisplacement(zonalDrift, meridionalDrift):
 
 
 # Calculates the difference in longitude from meters
-def _getLongDiff(rocketLatitude, zonalDrift):
+def _convertMetersToLongitudeDiff(rocketLatitude, zonalDrift):
     # Assumes radius of 6,371,000,000m (6.371E9)
     globalRadius = 6.371E9
 
@@ -58,7 +58,7 @@ def _getLongDiff(rocketLatitude, zonalDrift):
     return  longOffset
 
 # Calculates differnece in latitude from meters
-def _getLatDiff(meridionalDrift):
+def _convertMetersToLatitudeDiff(meridionalDrift):
     # NOTE: Latitude diff should be the same at any longitude as 
     # all longitudes have the same radius
     
@@ -73,16 +73,62 @@ def _getLatDiff(meridionalDrift):
 def debrisImpactPoint(rocketLongitude, rocketLatitude, zonalDrift, meridionalDrift):
 
     # Convert zonalDrift into longitude diff - depends on current latitude
-    longDiff = _getLongDiff(rocketLatitude, zonalDrift)
+    longDiff = _convertMetersToLongitudeDiff(rocketLatitude, zonalDrift)
 
     # Convert meridionalDrift into latitudinal diff
-    latDiff = _getLatDiff(meridionalDrift)
+    latDiff = _convertMetersToLatitudeDiff(meridionalDrift)
 
     # Apply the offsets to the original rocket latitude / longitudes
     newLongitude = rocketLongitude + longDiff
     newLatitude  = rocketLatitude  + latDiff
 
     return newLatitude, newLongitude
+
+
+
+
+def _getOffsetGranularity(coordA, coordB):
+
+    Granularity = 10#m TODO: Check 420 Appendix B for a granularity requirement
+
+    # convert lat to meters
+
+    # convert long to meters
+
+    # find the percentage offset that will give the required granularity
+
+    return 0.1 # for now test with this
+
+
+    # find a percentage granularity that matches the expected gran in meters
+
+
+
+def _getPointsOnALine(coordA, coordB):
+
+    # index 0 is latitude
+    # index 1 is longitude
+    pointsOnAline = [[],[]]
+    
+    # Get percentage offset to increment by
+    granularity = _getOffsetGranularity(coordA, coordB)
+
+    # Get a start location to apply the offset to
+
+    # Append the offset locations to the array
+
+
+    # 
+    offset = 0
+    while offset < 1: # maybe <=
+
+        newLatitude = coordA[0] + 
+
+        offset += granularity 
+
+
+    return pointsOnALine
+
 
 
 
