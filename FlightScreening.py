@@ -60,6 +60,7 @@ def genDriftLuts(WeatherLut):
 
 
 
+
 def analyseScreening():
 
     # Process the data files into LUTs
@@ -78,6 +79,7 @@ def analyseScreening():
     # Check each granularity of altitude - Assumes measurements were less than 1s apart ;)
     # NOTE: Appendix B 14 CFR Part 420 Annex B1 Table B-1 states using an altitude up to 
     #       50,000 ft so potentially this could be sped up by checking a maximum altitude of 15240m
+    # TODO: Look inti 14 CFR Appendix-B-to-Part-420(c)(4) not sure if this is related ti the calc or the source of data
     for trajectoryIdx in range(maxTrajectoryDataIdx):
 
         # Get the altitude
