@@ -1,4 +1,4 @@
-### DriftCalculator.py ###
+### utils.py ###
 
 import numpy as np
 
@@ -7,7 +7,6 @@ class DriftCalculator():
 
     def __init__(self):
         # Constants
-        # TODO: chexk this is lb/ft2 hahaha
         self.BallisticCoefficient = 15 #kgm^-2
         self.GravitationalAcceleration = 9.80665 # ms^-1
 
@@ -20,6 +19,17 @@ class DriftCalculator():
 
     ### Change in terminal fallback velocity? - Ask Øyvind
     def _fallBackVelocity(self, highAtmosphericDensity):
+        '''
+        Calculates Fallback Velocity difference between two regions of differing air density.
+        Equation defined in Screening Methodology Part 1
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            highAtmosphericDensity (float): New atmospheric density to compare against the previous value
+
+        Returns:
+            fbv (float): Calculated Fallback Velocity
+        '''
 
         lowAtmosphericDensity = self.DensityTracker
 
@@ -30,6 +40,18 @@ class DriftCalculator():
 
     ### Time for Debris to fall a given distance
     def _fallBackTime(self, highAltitude, fallBackVelocity):
+        '''
+        Calculates the fallback time between 2 altitudes with a given change in fallback velocity
+        Equation defined in Screening Methodology Part 2
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            highAltitude (float): New altitude to be diffed against the stored previous value
+            fallbackVelocity (float): Difference in fallback velocity from the two altitudes
+        
+        Returns:
+            timeDiff (float): Time taken to fall between the provided altitude & the stored previous
+        '''
 
         lowAltitude = self.AltitudeTracker
 
@@ -39,7 +61,19 @@ class DriftCalculator():
 
 
     ### East/West displacement (+ve is East)
-    def _zonalDisplacement(self, zonalWindVelocity, fallBackTime):
+    def _zonalDisplacement(self, zonalWindVelocity, fallBackTime): # Assumes average debris speed matches the wind speed
+        '''
+        Calculates the East/West distance travelled by falling debris 
+        Equation defined in Screening Methodology Part 3
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            zonalWindVelocity (float): Measured wind velocity in the East/West direction
+            fallBackTime (float): Time taken to fall a given distance
+        
+        Returns:
+            zonalDisp (float): Distance travelled in the East/West direction
+        '''
 
         zonalDisp = zonalWindVelocity * fallBackTime
 
@@ -48,6 +82,18 @@ class DriftCalculator():
 
     ### North/West displacement (+ve is North)
     def _meridionalDisplacement(self, meridionalWindVelocity, fallBackTime):
+        '''
+        Calculates the North/South distance travelled by falling debris 
+        Equation defined in Screening Methodology Part 3
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            meridionalWindVelocity (float): Measured wind velocity in the North/South direction
+            fallBackTime (float): Time taken to fall a given distance
+        
+        Returns:
+            meridionalDisp (float): Distance travelled in the East/West direction
+        '''
 
         meridionalDisp = meridionalWindVelocity * fallBackTime
 
@@ -55,7 +101,21 @@ class DriftCalculator():
 
 
     ### East/West drift (+ve is east)
-    def UpdateZonalDrift(self, altitude, density, windVelocity):
+    def UpdateZonalDrift(self, altitude, density, windVelocity): # Assumes debris drops directly down (no initial zonal velocity)
+        '''
+        Calculates & updates an internal tracker for total zonal drift. 
+        Each increment in altitude change can provide a new difference defined 
+        by a change in pressure & wind applied
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            altitude (float):       New altitude 
+            density (float):        Air density at the new altitude
+            windVelocity (float):   Wind velocity in the East/West direction at the new altitude
+
+        Returns:
+            newZonalDrift (float):  Total distance travelled by falling debris in the East/West direction as it falls to sea-level
+        '''
 
         # Calculate the change in Fallback Time
         fv = self._fallBackVelocity( density)
@@ -74,8 +134,22 @@ class DriftCalculator():
         return newZonalDrift.item()
 
 
-    ### East/West drift (+ve is east)
-    def UpdateMeridionalDrift(self, altitude, density, windVelocity):
+    ### North/South drift (+ve is north)
+    def UpdateMeridionalDrift(self, altitude, density, windVelocity): # Assumes debris drops directly down (no initial meridional velocity)
+        '''
+        Calculates & updates an internal tracker for total meridional drift. 
+        Each increment in altitude change can provide a new difference defined 
+        by a change in pressure & wind applied
+
+        Parameters:
+            self (DriftCalculator): Instantiation of a DriftCalculator object containing static variables to be tracked / used as constants
+            altitude (float):       New altitude 
+            density (float):        Air density at the new altitude
+            windVelocity (float):   Wind velocity in the North/South direction at the new altitude
+
+        Returns:
+            newMeridionalDrift (float): Total distance travelled by falling debris in the North/South direction as it falls to sea-level
+        '''
 
         # Calculate the change in Fallback Time
         fv = self._fallBackVelocity(density)

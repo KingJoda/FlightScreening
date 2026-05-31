@@ -10,6 +10,7 @@ from DriftCalculator import DriftCalculator
 import ImpactPointCalculator
 import dataHandler
 
+### TODO: ADD DOCSTRINGS, UPDATE isCoordinateInPolygon
 
 # Constants
 AltitudeGranularity = 1 # NOT USED, REMOVE
@@ -34,6 +35,7 @@ def genDriftLuts(WeatherLut):
     dataIdx = 0
 
     # For each weather reading, calculate the Zonal & Meridional Drift & append it to the LUT
+    # TODO: Sort the LUT to ensure the values are in order.....
     while dataIdx < len(WeatherLut[0]):
 
         # Get relevant data
@@ -60,8 +62,15 @@ def genDriftLuts(WeatherLut):
 
 
 
-
 def analyseScreening():
+    '''
+    Main function: Calls functions to read weather data & convert them to zonal & meridional drifts.
+                   These are then converted into latitudinal & longitudinal degreee changes & compared 
+                   to a Debris Exclusion Zone (DEZ). If debris is expected to fall within the DEZ, 
+                   the script will trigger an exception.
+    
+    TODO: Make something more intelligent for error reporting than hard-fail
+    '''
 
     # Process the data files into LUTs
     TrajectoryLut = dataHandler.getTrajectory()
@@ -79,7 +88,7 @@ def analyseScreening():
     # Check each granularity of altitude - Assumes measurements were less than 1s apart ;)
     # NOTE: Appendix B 14 CFR Part 420 Annex B1 Table B-1 states using an altitude up to 
     #       50,000 ft so potentially this could be sped up by checking a maximum altitude of 15240m
-    # TODO: Look inti 14 CFR Appendix-B-to-Part-420(c)(4) not sure if this is related ti the calc or the source of data
+    # TODO: Look into 14 CFR Appendix-B-to-Part-420(c)(4) not sure if this is related to the calc or the source of data
     for trajectoryIdx in range(maxTrajectoryDataIdx):
 
         # Get the altitude
@@ -89,10 +98,6 @@ def analyseScreening():
         # Screening Methodology Part 5 states that this can be linearly interpolated
         zonalDrift = np.interp(altitude, DriftLut[0], DriftLut[1])
         meridDrift = np.interp(altitude, DriftLut[0], DriftLut[2])
-        # zonalDriftInterpolation = scipy.interpolate(DriftLut[0], DriftLut[1])
-        # meridDriftInterpolation = scipy.interpolate(DriftLut[0], DriftLut[21])
-        # zonalDrift = zonalDriftInterpolation(altitude)
-        # meridDrift = meridDriftInterpolation(altitude)
 
         # Calculate the Impact Location
         rocketLatitude  = TrajectoryLut[1][trajectoryIdx]
